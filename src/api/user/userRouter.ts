@@ -13,7 +13,7 @@ userRegistry.register("User", UserSchema);
 
 userRegistry.registerPath({
 	method: "get",
-	path: "/users",
+	path: "/auth",
 	tags: ["User"],
 	responses: createApiResponse(z.array(UserSchema), "Success"),
 });
@@ -22,7 +22,7 @@ userRouter.get("/", userController.getUsers);
 
 userRegistry.registerPath({
 	method: "get",
-	path: "/users/{id}",
+	path: "/auth/{id}",
 	tags: ["User"],
 	request: { params: GetUserSchema.shape.params },
 	responses: createApiResponse(UserSchema, "Success"),
@@ -32,7 +32,7 @@ userRouter.get("/:id", validateRequest(GetUserSchema), userController.getUser);
 
 userRegistry.registerPath({
   method: "post",
-  path: "/users/register",
+  path: "/auth/register",
   tags: ["User"],
   request: {
     body: {
@@ -47,7 +47,7 @@ userRouter.post("/register", validateRequest(CreateUserSchema), userController.r
 
 userRegistry.registerPath({
   method: "post",
-  path: "/users/login",
+  path: "/auth/login",
   tags: ["User"],
   responses: createApiResponse(UserSchema, "Login successful"),
 });
@@ -55,7 +55,7 @@ userRouter.post("/login", userController.login);
 
 userRegistry.registerPath({
   method: "get",
-  path: "/users/me",
+  path: "/auth/me",
   tags: ["User"],
   responses: createApiResponse(UserSchema, "Success"),
 });
