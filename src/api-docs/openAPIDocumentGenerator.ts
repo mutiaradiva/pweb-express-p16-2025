@@ -4,11 +4,12 @@ import { healthCheckRegistry } from "@/api/healthCheck/healthCheckRouter";
 import { userRegistry } from "@/api/user/userRouter";
 import { bookRegistry } from "@/api/library/bookRouter";
 import { genreRegistry } from "@/api/library/bookRouter";
+import { orderRegistry } from "@/api/order/orderRouter";
 
 export type OpenAPIDocument = ReturnType<OpenApiGeneratorV3["generateDocument"]>;
 
 export function generateOpenAPIDocument(): OpenAPIDocument {
-    const registry = new OpenAPIRegistry([healthCheckRegistry, userRegistry, bookRegistry, genreRegistry]);
+    const registry = new OpenAPIRegistry([healthCheckRegistry, userRegistry, bookRegistry, genreRegistry, orderRegistry]);
     const generator = new OpenApiGeneratorV3(registry.definitions);
 
     return generator.generateDocument({

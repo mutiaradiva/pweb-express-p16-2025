@@ -10,6 +10,7 @@ import rateLimiter from "@/common/middleware/rateLimiter";
 import requestLogger from "@/common/middleware/requestLogger";
 import { env } from "@/common/utils/envConfig";
 import { bookRouter, genreRouter } from "@/api/library/bookRouter";
+import { orderRouter } from "./api/order/orderRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -22,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 app.use(helmet());
-app.use(rateLimiter);
+// app.use(rateLimiter);
 
 // Request logging
 app.use(requestLogger);
@@ -32,6 +33,7 @@ app.use("/health-check", healthCheckRouter);
 app.use("/users", userRouter);
 app.use("/books", bookRouter);
 app.use("/genres", genreRouter);
+app.use("/orders", orderRouter);
 
 // Swagger UI
 app.use(openAPIRouter);
