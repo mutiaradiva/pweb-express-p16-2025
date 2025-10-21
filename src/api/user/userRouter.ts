@@ -1,7 +1,7 @@
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import express, { type Router } from "express";
 import { z } from "zod";
-import { GetUserSchema, UserSchema } from "@/api/user/userModel";
+import { GetUserSchema, UserSchema, CreateUserSchema } from "@/api/user/userModel";
 import { createApiResponse } from "@/api-docs/openAPIResponseBuilders";
 import { validateRequest } from "@/common/utils/httpHandlers";
 import { userController } from "./userController";
@@ -29,3 +29,34 @@ userRegistry.registerPath({
 });
 
 userRouter.get("/:id", validateRequest(GetUserSchema), userController.getUser);
+
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/register",
+  tags: ["User"],
+  request: {
+    body: {
+      content: {
+        "application/json": { schema: CreateUserSchema.shape.body },
+      },
+    },
+  },
+  responses: createApiResponse(UserSchema, "Created"),
+});
+userRouter.post("/register", validateRequest(CreateUserSchema), userController.register);
+
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/login",
+  tags: ["User"],
+  responses: createApiResponse(UserSchema, "Login successful"),
+});
+userRouter.post("/login", userController.login);
+
+userRegistry.registerPath({
+  method: "get",
+  path: "/users/me",
+  tags: ["User"],
+  responses: createApiResponse(UserSchema, "Success"),
+});
+userRouter.get("/me", userController.getMe);

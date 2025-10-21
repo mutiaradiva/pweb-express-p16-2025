@@ -4,6 +4,8 @@ import type { User } from "@/generated/prisma";
 import { UserRepository } from "@/api/user/userRepository";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import { logger } from "@/server";
+import bcrypt from "bcryptjs";
+import { env } from "@/common/utils/envConfig";
 
 export class UserService {
     private userRepository: UserRepository;
@@ -21,7 +23,7 @@ export class UserService {
             }
             return ServiceResponse.success<User[]>("Users found", users);
         } catch (ex) {
-            const errorMessage = `Error finding all users: $${(ex as Error).message}`;
+            const errorMessage = `Error finding all users: ${(ex as Error).message}`;
             logger.error(errorMessage);
             return ServiceResponse.failure(
                 "An error occurred while retrieving users.",
@@ -43,6 +45,62 @@ export class UserService {
             const errorMessage = `Error finding user with id ${id}:, ${(ex as Error).message}`;
             logger.error(errorMessage);
             return ServiceResponse.failure("An error occurred while finding user.", null, StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async register(username: string, email: string, password: string): Promise<ServiceResponse<User | null>> {
+        try {
+            const existing = await this.userRepository.findByEmailAsync(email);
+            if (existing) {
+                return ServiceResponse.failure("Email already registered", null, StatusCodes.BAD_REQUEST);
+            }
+
+const hashed = await bcrypt.hash(password, 10);
+
+            const newUser = await this.userRepository.createAsync({
+                username: username || null,
+                email,
+                password: hashed,
+            });
+
+            return ServiceResponse.success<User>("User registered successfully", newUser, StatusCodes.CREATED);
+        } catch (ex) {
+            logger.error(`Error during registration: ${(ex as Error).message}`);
+            return ServiceResponse.failure("Registration failed", null, StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async login(email: string, password: string): Promise<ServiceResponse<User | null>> {
+        try {
+            const user = await this.userRepository.findByEmailAsync(email);
+            if (!user) {
+                return ServiceResponse.failure("Invalid credentials", null, StatusCodes.UNAUTHORIZED);
+            }
+
+            const match = await bcrypt.compare(password, user.password);
+            if (!match) {
+                return ServiceResponse.failure("Invalid credentials", null, StatusCodes.UNAUTHORIZED);
+            }
+
+            return ServiceResponse.success<User>("Login successful", user);
+        } catch (ex) {
+            logger.error(`Error during login: ${(ex as Error).message}`);
+            return ServiceResponse.failure("Login failed", null, StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async getMe(userId: string): Promise<ServiceResponse<User | null>> {
+        try {
+            const user = await this.userRepository.findByIdAsync(userId);
+            if (!user) {
+                return ServiceResponse.failure("User not found", null, StatusCodes.NOT_FOUND);
+            }
+
+            const { password, ...safeUser } = user;
+            return ServiceResponse.success("User profile retrieved", safeUser as User);
+        } catch (ex) {
+            logger.error(`Error retrieving user profile: ${(ex as Error).message}`);
+            return ServiceResponse.failure("Failed to retrieve user", null, StatusCodes.INTERNAL_SERVER_ERROR);
         }
     }
 }
