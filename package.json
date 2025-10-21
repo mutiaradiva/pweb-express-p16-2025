@@ -18,6 +18,8 @@
 	"dependencies": {
 		"@asteasolutions/zod-to-openapi": "7.3.4",
 		"@prisma/client": "^6.17.1",
+		"@types/bcrypt": "^6.0.0",
+		"bcrypt": "^6.0.0",
 		"cors": "2.8.5",
 		"dotenv": "17.2.1",
 		"express": "5.1.0",
