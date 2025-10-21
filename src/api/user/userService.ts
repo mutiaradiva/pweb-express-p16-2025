@@ -14,40 +14,6 @@ export class UserService {
         this.userRepository = repository;
     }
 
-    // Retrieves all users from the database
-    async findAll(): Promise<ServiceResponse<User[] | null>> {
-        try {
-            const users = await this.userRepository.findAllAsync();
-            if (!users || users.length === 0) {
-                return ServiceResponse.failure("No Users found", null, StatusCodes.NOT_FOUND);
-            }
-            return ServiceResponse.success<User[]>("Users found", users);
-        } catch (ex) {
-            const errorMessage = `Error finding all users: ${(ex as Error).message}`;
-            logger.error(errorMessage);
-            return ServiceResponse.failure(
-                "An error occurred while retrieving users.",
-                null,
-                StatusCodes.INTERNAL_SERVER_ERROR,
-            );
-        }
-    }
-
-    // Retrieves a single user by their ID
-    async findById(id: string): Promise<ServiceResponse<User | null>> {
-        try {
-            const user = await this.userRepository.findByIdAsync(id);
-            if (!user) {
-                return ServiceResponse.failure("User not found", null, StatusCodes.NOT_FOUND);
-            }
-            return ServiceResponse.success<User>("User found", user);
-        } catch (ex) {
-            const errorMessage = `Error finding user with id ${id}:, ${(ex as Error).message}`;
-            logger.error(errorMessage);
-            return ServiceResponse.failure("An error occurred while finding user.", null, StatusCodes.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     async register(username: string, email: string, password: string): Promise<ServiceResponse<User | null>> {
         try {
             const existing = await this.userRepository.findByEmailAsync(email);
@@ -55,7 +21,7 @@ export class UserService {
                 return ServiceResponse.failure("Email already registered", null, StatusCodes.BAD_REQUEST);
             }
 
-const hashed = await bcrypt.hash(password, 10);
+            const hashed = await bcrypt.hash(password, 10);
 
             const newUser = await this.userRepository.createAsync({
                 username: username || null,
