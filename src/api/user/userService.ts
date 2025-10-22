@@ -1,11 +1,17 @@
 import { StatusCodes } from "http-status-codes";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 import type { User } from "@/generated/prisma";
 import { UserRepository } from "@/api/user/userRepository";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import { logger } from "@/server";
-import bcrypt from "bcryptjs";
 import { env } from "@/common/utils/envConfig";
+
+// Response type untuk authentication
+export interface AuthResponse {
+    token: string;
+}
 
 export class UserService {
     private userRepository: UserRepository;
@@ -14,7 +20,21 @@ export class UserService {
         this.userRepository = repository;
     }
 
-    async register(username: string, email: string, password: string): Promise<ServiceResponse<User | null>> {
+    private generateToken(user: User): string {
+        // Pastikan JWT_SECRET ada di env config Anda
+        const secret = env.JWT_SECRET || "your-secret-key";
+        return jwt.sign(
+            { 
+                id: user.id, 
+                email: user.email,
+                username: user.username 
+            },
+            secret,
+            { expiresIn: "24h" } // Token expired dalam 24 jam
+        );
+    }
+
+    async register(username: string, email: string, password: string): Promise<ServiceResponse<AuthResponse | null>> {
         try {
             const existing = await this.userRepository.findByEmailAsync(email);
             if (existing) {
@@ -29,14 +49,20 @@ export class UserService {
                 password: hashed,
             });
 
-            return ServiceResponse.success<User>("User registered successfully", newUser, StatusCodes.CREATED);
+            const token = this.generateToken(newUser);
+
+            return ServiceResponse.success<AuthResponse>(
+                "User registered successfully", 
+                { token }, 
+                StatusCodes.CREATED
+            );
         } catch (ex) {
             logger.error(`Error during registration: ${(ex as Error).message}`);
             return ServiceResponse.failure("Registration failed", null, StatusCodes.INTERNAL_SERVER_ERROR);
         }
     }
 
-    async login(email: string, password: string): Promise<ServiceResponse<User | null>> {
+    async login(email: string, password: string): Promise<ServiceResponse<AuthResponse | null>> {
         try {
             const user = await this.userRepository.findByEmailAsync(email);
             if (!user) {
@@ -48,7 +74,12 @@ export class UserService {
                 return ServiceResponse.failure("Invalid credentials", null, StatusCodes.UNAUTHORIZED);
             }
 
-            return ServiceResponse.success<User>("Login successful", user);
+            const token = this.generateToken(user);
+
+            return ServiceResponse.success<AuthResponse>(
+                "Login successful", 
+                { token }
+            );
         } catch (ex) {
             logger.error(`Error during login: ${(ex as Error).message}`);
             return ServiceResponse.failure("Login failed", null, StatusCodes.INTERNAL_SERVER_ERROR);
