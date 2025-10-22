@@ -29,6 +29,13 @@ export const CreateUserSchema = z.object({
     }),
 });
 
+export const LoginUserSchema = z.object({
+    body: z.object({
+        email: z.string().email(),
+        password: z.string().min(6),
+    }),
+});
+
 export const UpdateUserSchema = z.object({
     params: z.object({ id: commonValidations.id }),
     body: z.object({
