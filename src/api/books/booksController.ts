@@ -1,66 +1,58 @@
-import { Request, Response } from "express";
-import { booksService } from "./booksService";
-import { CreateBookSchema, UpdateBookSchema } from "./booksModel";
+import type { Request, RequestHandler, Response } from "express";
+import { bookService } from "./bookService";
 
-export const booksController = {
-  async create(req: Request, res: Response) {
-    try {
-      const parsed = CreateBookSchema.parse({ body: req.body });
-      const book = await booksService.createBook(parsed.body);
-      res.status(201).json({ message: "Book created", data: book });
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
-  },
+class BookController {
+  // ===== BOOK =====
+  public getBooks: RequestHandler = async (_req: Request, res: Response) => {
+    const serviceResponse = await bookService.findAllBooks();
+    res.status(serviceResponse.statusCode).send(serviceResponse);
+  };
 
-  async getAll(req: Request, res: Response) {
-    try {
-      const result = await booksService.getAllBooks(req.query);
-      res.status(200).json(result);
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
-  },
+  public getBookById: RequestHandler = async (req: Request, res: Response) => {
+    const serviceResponse = await bookService.findBookById(req.params.id);
+    res.status(serviceResponse.statusCode).send(serviceResponse);
+  };
 
-  async getDetail(req: Request, res: Response) {
-    try {
-      const book = await booksService.getBookById(req.params.id);
-      res.status(200).json(book);
-    } catch (err: any) {
-      res.status(404).json({ error: err.message });
-    }
-  },
+  public createBook: RequestHandler = async (req: Request, res: Response) => {
+    const serviceResponse = await bookService.createBook(req.body);
+    res.status(serviceResponse.statusCode).send(serviceResponse);
+  };
 
-  async getByGenre(req: Request, res: Response) {
-    try {
-      const genreId = req.params.genre_id;
-      const result = await booksService.getBooksByGenre(genreId, req.query);
-      res.status(200).json(result);
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
-  },
+  public updateBook: RequestHandler = async (req: Request, res: Response) => {
+    const serviceResponse = await bookService.updateBook(req.params.id, req.body);
+    res.status(serviceResponse.statusCode).send(serviceResponse);
+  };
 
-  async update(req: Request, res: Response) {
-    try {
-      const parsed = UpdateBookSchema.parse({
-        params: req.params,
-        body: req.body,
-      });
-      const book = await booksService.updateBook(parsed.params.id, parsed.body);
-      res.status(200).json({ message: "Book updated", data: book });
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
-  },
+  public deleteBook: RequestHandler = async (req: Request, res: Response) => {
+    const serviceResponse = await bookService.deleteBook(req.params.id);
+    res.status(serviceResponse.statusCode).send(serviceResponse);
+  };
 
-  async remove(req: Request, res: Response) {
-    try {
-      const id = req.params.id;
-      await booksService.deleteBook(id);
-      res.status(200).json({ message: "Book deleted" });
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
-  },
-};
+  // ===== GENRE =====
+  public getGenres: RequestHandler = async (_req: Request, res: Response) => {
+    const serviceResponse = await bookService.findAllGenres();
+    res.status(serviceResponse.statusCode).send(serviceResponse);
+  };
+
+  public getGenreById: RequestHandler = async (req: Request, res: Response) => {
+    const serviceResponse = await bookService.findGenreById(req.params.id);
+    res.status(serviceResponse.statusCode).send(serviceResponse);
+  };
+
+  public createGenre: RequestHandler = async (req: Request, res: Response) => {
+    const serviceResponse = await bookService.createGenre(req.body);
+    res.status(serviceResponse.statusCode).send(serviceResponse);
+  };
+
+  public updateGenre: RequestHandler = async (req: Request, res: Response) => {
+    const serviceResponse = await bookService.updateGenre(req.params.id, req.body);
+    res.status(serviceResponse.statusCode).send(serviceResponse);
+  };
+
+  public deleteGenre: RequestHandler = async (req: Request, res: Response) => {
+    const serviceResponse = await bookService.deleteGenre(req.params.id);
+    res.status(serviceResponse.statusCode).send(serviceResponse);
+  };
+}
+
+export const bookController = new BookController();

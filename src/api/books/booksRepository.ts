@@ -1,49 +1,54 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import prisma from "@/common/utils/prisma";
+import type { Genre, Book } from "@/generated/prisma";
 
-export const booksRepository = {
-  async findByTitle(title: string) {
-    return prisma.book.findUnique({ where: { title } });
-  },
+export class BookRepository {
+  async findAllAsync(): Promise<Book[]> {
+    return prisma.book.findMany({
+      include: { genre: true },
+    });
+  }
 
-  async findById(id: string) {
+  async findByIdAsync(id: string): Promise<Book | null> {
     return prisma.book.findUnique({
       where: { id },
       include: { genre: true },
     });
-  },
+  }
 
-  async create(data: any) {
+  async createAsync(data: Omit<Book, "id">): Promise<Book> {
     return prisma.book.create({ data });
-  },
+  }
 
-  async findAll(params: { page: number; limit: number; search?: string; genreId?: string }) {
-    const { page, limit, search, genreId } = params;
-    const skip = (page - 1) * limit;
-    const where: any = {
-      title: search ? { contains: search, mode: "insensitive" } : undefined,
-      ...(genreId && { genre_id: genreId }),
-    };
-
-    const [books, total] = await Promise.all([
-      prisma.book.findMany({
-        where,
-        include: { genre: true },
-        skip,
-        take: limit,
-        orderBy: { created_at: "desc" },
-      }),
-      prisma.book.count({ where }),
-    ]);
-
-    return { books, total };
-  },
-
-  async update(id: string, data: any) {
+  async updateAsync(id: string, data: Partial<Book>): Promise<Book> {
     return prisma.book.update({ where: { id }, data });
-  },
+  }
 
-  async delete(id: string) {
+  async deleteAsync(id: string): Promise<Book> {
     return prisma.book.delete({ where: { id } });
-  },
-};
+  }
+}
+
+export class GenreRepository {
+  async findAllAsync(): Promise<Genre[]> {
+    return prisma.genre.findMany();
+  }
+
+  async findByIdAsync(id: string): Promise<Genre | null> {
+    return prisma.genre.findUnique({ where: { id } });
+  }
+
+  async createAsync(data: Omit<Genre, "id">): Promise<Genre> {
+    return prisma.genre.create({ data });
+  }
+
+  async updateAsync(id: string, data: Partial<Genre>): Promise<Genre> {
+    return prisma.genre.update({ where: { id }, data });
+  }
+
+  async deleteAsync(id: string): Promise<Genre> {
+    return prisma.genre.delete({ where: { id } });
+  }
+}
+
+export const bookRepository = new BookRepository();
+export const genreRepository = new GenreRepository();
