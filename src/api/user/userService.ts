@@ -24,10 +24,10 @@ export class UserService {
         // Pastikan JWT_SECRET ada di env config Anda
         const secret = env.JWT_SECRET || "your-secret-key";
         return jwt.sign(
-            { 
-                id: user.id, 
+            {
+                id: user.id,
                 email: user.email,
-                username: user.username 
+                username: user.username
             },
             secret,
             { expiresIn: "24h" } // Token expired dalam 24 jam
@@ -52,8 +52,8 @@ export class UserService {
             const token = this.generateToken(newUser);
 
             return ServiceResponse.success<AuthResponse>(
-                "User registered successfully", 
-                { token }, 
+                "User registered successfully",
+                { token },
                 StatusCodes.CREATED
             );
         } catch (ex) {
@@ -77,7 +77,7 @@ export class UserService {
             const token = this.generateToken(user);
 
             return ServiceResponse.success<AuthResponse>(
-                "Login successful", 
+                "Login successful",
                 { token }
             );
         } catch (ex) {
