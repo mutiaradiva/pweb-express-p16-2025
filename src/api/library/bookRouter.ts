@@ -5,6 +5,7 @@ import { BookSchema, GenreSchema } from "@/api/library/bookModel";
 import { createApiResponse } from "@/api-docs/openAPIResponseBuilders";
 import { validateRequest } from "@/common/utils/httpHandlers";
 import { bookController } from "./bookController";
+import { authMiddleware } from "@/common/middleware/authHandler";
 
 export const bookRegistry = new OpenAPIRegistry();
 export const bookRouter: Router = express.Router();
@@ -31,7 +32,7 @@ genreRegistry.registerPath({
     responses: createApiResponse(z.array(GenreSchema), "Success"),
 });
 
-genreRouter.get("/", bookController.getGenres);
+genreRouter.get("/", authMiddleware, bookController.getGenres);
 
 genreRegistry.registerPath({
     method: "post",
@@ -40,4 +41,31 @@ genreRegistry.registerPath({
     responses: createApiResponse(GenreSchema, "Genre created successfully")
 });
 
-genreRouter.post("/", bookController.createGenre);
+genreRouter.post("/", authMiddleware, bookController.createGenre);
+
+genreRegistry.registerPath({
+    method: "get",
+    path: "/genre/:id",
+    tags: ["Genre"],
+    responses: createApiResponse(GenreSchema, "Success"),
+});
+
+genreRouter.get("/:id", authMiddleware, bookController.getGenre);
+
+genreRegistry.registerPath({
+    method: "put",
+    path: "/genre/:id",
+    tags: ["Genre"],
+    responses: createApiResponse(GenreSchema, "Genre updated successfully")
+});
+
+genreRouter.patch("/:id", authMiddleware, bookController.updateGenre);
+
+genreRegistry.registerPath({
+    method: "delete",
+    path: "/genre/:id",
+    tags: ["Genre"],
+    responses: createApiResponse(GenreSchema, "Genre deleted successfully")
+});
+
+genreRouter.delete("/:id", authMiddleware, bookController.deleteGenre);

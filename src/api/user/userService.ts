@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+// @ts-ignore
 import bcrypt from "bcryptjs";
 
 import type { User } from "@/generated/prisma";

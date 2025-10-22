@@ -16,6 +16,25 @@ class BookController {
         const serviceResponse = await bookService.createGenre(name);
         res.status(serviceResponse.statusCode).send(serviceResponse);
     }
+
+    public getGenre: RequestHandler = async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const serviceResponse = await bookService.findGenreByID(id);
+        res.status(serviceResponse.statusCode).send(serviceResponse);
+    }
+
+    public updateGenre: RequestHandler = async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const { name } = req.body;
+        const serviceResponse = await bookService.updateGenre(id, name);
+        res.status(serviceResponse.statusCode).send(serviceResponse);
+    }
+
+    public deleteGenre: RequestHandler = async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const serviceResponse = await bookService.deleteGenre(id);
+        res.status(serviceResponse.statusCode).send(serviceResponse);
+    }
 }
 
 export const bookController = new BookController();
