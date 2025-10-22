@@ -51,6 +51,21 @@ export class BookService {
             );
         }
     }
+
+    async createGenre(name: string): Promise<ServiceResponse<Genre | null>> {
+        try {
+            const newGenre = await this.genreRepository.createGenreAsync(name);
+            return ServiceResponse.success<Genre>("Genre created successfully", newGenre, StatusCodes.CREATED);
+        } catch (ex) {
+            const errorMessage = `Error creating genre: $${(ex as Error).message}`;
+            logger.error(errorMessage);
+            return ServiceResponse.failure(
+                "An error occurred while creating the genre.",
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
 }
 
 export const bookService = new BookService();
