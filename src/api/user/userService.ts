@@ -34,9 +34,15 @@ export class UserService {
                 password: hashed,
             });
 
+            const safeUser = {
+                id: newUser.id,
+                email: newUser.email,
+                created_at: newUser.created_at,
+            };
+
             return ServiceResponse.success<User>(
                 "User registered successfully",
-                { ...newUser, password: "" } as User,
+                safeUser as User,
                 StatusCodes.CREATED
             );
         } catch (ex) {
@@ -76,8 +82,8 @@ export class UserService {
                 return ServiceResponse.failure("User not found", null, StatusCodes.NOT_FOUND);
             }
 
-            const { password, ...safeUser } = user;
-            return ServiceResponse.success("User profile retrieved", safeUser as User);
+            const { password, created_at, updated_at, ...safeUser } = user;
+            return ServiceResponse.success("Get me successfully", safeUser as User);
         } catch (ex) {
             logger.error(`Error retrieving user profile: ${(ex as Error).message}`);
             return ServiceResponse.failure("Failed to retrieve user", null, StatusCodes.INTERNAL_SERVER_ERROR);

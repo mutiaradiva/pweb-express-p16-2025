@@ -39,6 +39,8 @@ export const CreateOrderSchema = z.object({
     }),
 });
 
+export type CreateOrderInput = z.infer<typeof CreateOrderSchema>["body"];
+
 export const UpdateOrderSchema = z.object({
     params: z.object({ id: commonValidations.id }),
     body: z.object({

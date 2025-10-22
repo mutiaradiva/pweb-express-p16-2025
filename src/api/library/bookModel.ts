@@ -62,6 +62,8 @@ export const CreateBookSchema = z.object({
     }),
 });
 
+export type CreateBookInput = z.infer<typeof CreateBookSchema>["body"];
+
 export const UpdateBookSchema = z.object({
     params: z.object({ id: commonValidations.id }),
     body: z.object({

@@ -1,15 +1,46 @@
 import prisma from "@/common/utils/prisma";
-import type { Order } from "@/generated/prisma";
+import type { Order, Prisma } from "@/generated/prisma";
+import { CreateOrderInput } from "./orderModel";
 
 export class OrderRepository {
+
+    async createOrderAsync(
+        data: {
+            user_id: string;
+            order_items: { book_id: string; quantity: number }[];
+        },
+        tx?: Prisma.TransactionClient
+    ) {
+        const prismaClient = tx || prisma;
+        return prismaClient.order.create({
+            data: {
+                user_id: data.user_id,
+                order_items: {
+                    create: data.order_items.map((item) => ({
+                        book_id: item.book_id,
+                        quantity: item.quantity,
+                    })),
+                },
+            },
+            include: {
+                order_items: {
+                    include: {
+                        book: { select: { title: true, price: true } },
+                    },
+                },
+                user: {
+                    select: { id: true, email: true, username: true },
+                },
+            },
+        });
+    }
+
     async findAllAsync() {
         return prisma.order.findMany({
             include: {
-                user: {
-                    select: {
-                        id: true,
-                        email: true,
-                        username: true,
+                order_items: {
+                    include: {
+                        book: true,
                     },
                 },
             },
@@ -17,20 +48,38 @@ export class OrderRepository {
         });
     }
 
-    async findByIdAsync(id: string): Promise<Order | null> {
+    async checkBookQuantityAsync(book_id: string): Promise<number> {
+        const book = await prisma.book.findUnique({
+            where: { id: book_id },
+            select: { stock_quantity: true },
+        });
+        return book ? book.stock_quantity : 0;
+    }
+
+    async decreaseBookQuantityAsync(book_id: string, quantity: number): Promise<void> {
+        await prisma.book.update({
+            where: { id: book_id },
+            data: {
+                stock_quantity: {
+                    decrement: quantity,
+                },
+            },
+        });
+    }
+
+    async findTransactionByIdAsync(id: string) {
         return prisma.order.findUnique({
             where: { id },
             include: {
                 order_items: {
                     include: {
-                        book: true,
-                    },
-                },
-                user: {
-                    select: {
-                        id: true,
-                        email: true,
-                        username: true,
+                        book: {
+                            select: {
+                                id: true,
+                                title: true,
+                                price: true,
+                            },
+                        },
                     },
                 },
             },
@@ -38,11 +87,8 @@ export class OrderRepository {
     }
 
     async getStatisticsAsync() {
-        // 1️⃣ Total transactions
         const totalTransactions = await prisma.order.count();
 
-        // 2️⃣ Average transaction amount
-        // Calculate total price for each order by joining OrderItem -> Book
         const orderTotals = await prisma.order.findMany({
             select: {
                 id: true,
@@ -66,18 +112,15 @@ export class OrderRepository {
         const averageTransactionValue =
             totalTransactions > 0 ? totalAmountAllOrders / totalTransactions : 0;
 
-        // 3️⃣ Genre with most and least transactions
         const genreSales = await prisma.orderItem.groupBy({
             by: ["book_id"],
             _sum: { quantity: true },
         });
 
-        // Now map book_id -> genre_id
         const bookGenres = await prisma.book.findMany({
             select: { id: true, genre_id: true },
         });
 
-        // Aggregate sales per genre
         const genreMap = new Map<string, number>();
         for (const sale of genreSales) {
             const book = bookGenres.find((b) => b.id === sale.book_id);
@@ -86,13 +129,11 @@ export class OrderRepository {
             genreMap.set(book.genre_id, current + (sale._sum.quantity || 0));
         }
 
-        // Convert to sortable array
         const genreArray = Array.from(genreMap.entries()).map(([genre_id, count]) => ({
             genre_id,
             count,
         }));
 
-        // Sort descending
         genreArray.sort((a, b) => b.count - a.count);
 
         let mostGenre = null;
