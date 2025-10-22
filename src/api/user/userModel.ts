@@ -6,12 +6,7 @@ import { commonValidations } from "@/common/utils/commonValidation";
 extendZodWithOpenApi(z);
 
 export const UserSchema = z.object({
-    id: z.string().uuid(),
-    username: z.string(),
-    password: z.string(),
-    email: z.string().email(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
+    token: z.string(),
 });
 
 export type User = z.infer<typeof UserSchema>;
@@ -26,6 +21,13 @@ export const CreateUserSchema = z.object({
         username: z.string().optional(),
         password: z.string().min(6),
         email: z.string().email(),
+    }),
+});
+
+export const LoginUserSchema = z.object({
+    body: z.object({
+        email: z.string().email(),
+        password: z.string().min(6),
     }),
 });
 

@@ -29,7 +29,7 @@ app.use(requestLogger);
 
 // Routes
 app.use("/health-check", healthCheckRouter);
-app.use("/users", userRouter);
+app.use("/auth", userRouter);
 app.use("/books", bookRouter);
 app.use("/genres", genreRouter);
 
