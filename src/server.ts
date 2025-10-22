@@ -30,8 +30,8 @@ app.use(requestLogger);
 // Routes
 app.use("/health-check", healthCheckRouter);
 app.use("/users", userRouter);
-app.use("/books", booksRouter);
-app.use("/genres", genreRouter);
+app.use("/books", bookRouter);
+app.use("/genre", genreRouter);
 
 // Swagger UI
 app.use(openAPIRouter);

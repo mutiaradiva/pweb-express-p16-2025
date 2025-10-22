@@ -26,9 +26,18 @@ bookRouter.get("/", bookController.getBooks);
 
 genreRegistry.registerPath({
     method: "get",
-    path: "/genres",
+    path: "/genre",
     tags: ["Books"],
     responses: createApiResponse(z.array(GenreSchema), "Success"),
 });
 
 genreRouter.get("/", bookController.getGenres);
+
+genreRegistry.registerPath({
+    method: "post",
+    path: "/genre",
+    tags: ["Genre"],
+    responses: createApiResponse(GenreSchema, "Genre created successfully")
+});
+
+genreRouter.post("/", bookController.createGenre);

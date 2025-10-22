@@ -13,4 +13,10 @@ export class GenreRepository {
     async findAllAsync(): Promise<Genre[]> {
         return prisma.genre.findMany();
     }
+
+    async createGenreAsync(name: string): Promise<Genre> {
+        return prisma.genre.create({
+            data: { name },
+        });
+    }
 }

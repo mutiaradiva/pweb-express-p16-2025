@@ -11,6 +11,11 @@ class BookController {
         const serviceResponse = await bookService.findAllGenres();
         res.status(serviceResponse.statusCode).send(serviceResponse);
     }
+    public createGenre: RequestHandler = async (req: Request, res: Response) => {
+        const { name } = req.body;
+        const serviceResponse = await bookService.createGenre(name);
+        res.status(serviceResponse.statusCode).send(serviceResponse);
+    }
 }
 
 export const bookController = new BookController();
