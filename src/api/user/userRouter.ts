@@ -5,6 +5,7 @@ import { GetUserSchema, UserSchema, CreateUserSchema, LoginUserSchema } from "@/
 import { createApiResponse } from "@/api-docs/openAPIResponseBuilders";
 import { validateRequest } from "@/common/utils/httpHandlers";
 import { userController } from "./userController";
+import { authMiddleware } from "@/common/middleware/authHandler";
 
 export const userRegistry = new OpenAPIRegistry();
 export const userRouter: Router = express.Router();
@@ -47,4 +48,4 @@ userRegistry.registerPath({
     tags: ["User"],
     responses: createApiResponse(UserSchema, "Success"),
 });
-userRouter.get("/me", userController.getMe);
+userRouter.get("/me", authMiddleware, userController.getMe);

@@ -34,7 +34,7 @@ export class UserService {
         );
     }
 
-    async register(username: string, email: string, password: string): Promise<ServiceResponse<AuthResponse | null>> {
+    async register(username: string, email: string, password: string): Promise<ServiceResponse<User | null>> {
         try {
             const existing = await this.userRepository.findByEmailAsync(email);
             if (existing) {
@@ -49,11 +49,9 @@ export class UserService {
                 password: hashed,
             });
 
-            const token = this.generateToken(newUser);
-
-            return ServiceResponse.success<AuthResponse>(
+            return ServiceResponse.success<User>(
                 "User registered successfully",
-                { token },
+                { ...newUser, password: "" } as User,
                 StatusCodes.CREATED
             );
         } catch (ex) {

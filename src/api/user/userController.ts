@@ -1,6 +1,7 @@
 import type { Request, RequestHandler, Response } from "express";
 
 import { userService } from "@/api/user/userService";
+import { AuthenticatedRequest } from "@/common/middleware/authHandler";
 
 class UserController {
 
@@ -10,10 +11,18 @@ class UserController {
         res.status(serviceResponse.statusCode).send(serviceResponse);
     };
 
-    public getMe: RequestHandler = async (req: Request, res: Response) => {
-        const userId = (req as any).user?.id;
+    public getMe = async (req: AuthenticatedRequest, res: Response) => {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: token not found or invalid",
+            });
+        }
+
         const serviceResponse = await userService.getMe(userId);
-        res.status(serviceResponse.statusCode).send(serviceResponse);
+        res.status(serviceResponse.statusCode).json(serviceResponse);
     };
 
     public register: RequestHandler = async (req: Request, res: Response) => {
