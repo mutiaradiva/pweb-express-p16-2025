@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "@/common/utils/envConfig";
+import { User } from "@/generated/prisma/wasm";
 
 export interface JwtPayload {
     id: string;
@@ -10,6 +11,19 @@ export interface JwtPayload {
 
 export interface AuthenticatedRequest extends Request {
     user?: JwtPayload;
+}
+
+export const generateToken = (user: User): string => {
+    const secret = env.JWT_SECRET || "your-secret-key";
+    return jwt.sign(
+        {
+            id: user.id,
+            email: user.email,
+            username: user.username
+        },
+        secret,
+        { expiresIn: "24h" }
+    );
 }
 
 export const authMiddleware = (

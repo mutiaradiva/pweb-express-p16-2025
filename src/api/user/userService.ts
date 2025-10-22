@@ -1,14 +1,12 @@
 import { StatusCodes } from "http-status-codes";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 import type { User } from "@/generated/prisma";
 import { UserRepository } from "@/api/user/userRepository";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import { logger } from "@/server";
-import { env } from "@/common/utils/envConfig";
+import { generateToken } from "@/common/middleware/authHandler";
 
-// Response type untuk authentication
 export interface AuthResponse {
     token: string;
 }
@@ -18,20 +16,6 @@ export class UserService {
 
     constructor(repository: UserRepository = new UserRepository()) {
         this.userRepository = repository;
-    }
-
-    private generateToken(user: User): string {
-        // Pastikan JWT_SECRET ada di env config Anda
-        const secret = env.JWT_SECRET || "your-secret-key";
-        return jwt.sign(
-            {
-                id: user.id,
-                email: user.email,
-                username: user.username
-            },
-            secret,
-            { expiresIn: "24h" } // Token expired dalam 24 jam
-        );
     }
 
     async register(username: string, email: string, password: string): Promise<ServiceResponse<User | null>> {
@@ -72,7 +56,7 @@ export class UserService {
                 return ServiceResponse.failure("Invalid credentials", null, StatusCodes.UNAUTHORIZED);
             }
 
-            const token = this.generateToken(user);
+            const token = generateToken(user);
 
             return ServiceResponse.success<AuthResponse>(
                 "Login successful",
